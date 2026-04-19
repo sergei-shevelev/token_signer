@@ -32,12 +32,18 @@ RSpec.describe TokenSigner do
   let(:string_payload) { 'V3AE5k8U4CosyZdTaQHB45j5' }
   let(:string_payload_encoded) { build_encoded_payload(string_payload, unix_time).freeze }
   let(:string_payload_sig) { '3e53d41b584ded257670da2faf7421168d0b2332' }
-  let(:signed_string) { "#{string_payload_encoded}--#{string_payload_sig}" }
+  let(:signed_string) do
+    ActiveSupport::MessageVerifier.new(secret, digest: 'SHA1', serializer: Marshal)
+                                  .generate([string_payload, unix_time])
+  end
 
   let(:array_payload) { %w[31ihk2jsCSQNGwARVQwQDVtD K2mF78d9Q8u6MqWHb9CbmfYM].freeze }
   let(:array_payload_encoded) { build_encoded_payload(array_payload, unix_time).freeze }
   let(:array_payload_sig) { '51e14671f012574083c9a16c57df14db2ea14fd5' }
-  let(:signed_array) { "#{array_payload_encoded}--#{array_payload_sig}" }
+  let(:signed_array) do
+    ActiveSupport::MessageVerifier.new(secret, digest: 'SHA1', serializer: Marshal)
+                                  .generate([array_payload, unix_time])
+  end
 
   def build_encoded_payload(raw_payload, unix_time)
     Base64.strict_encode64(Marshal.dump([raw_payload, unix_time]))
